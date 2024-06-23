@@ -4,7 +4,7 @@ This repository contains scripts for authenticating to AWS using Multi-Factor Au
 
 ## Purpose
 
-These scripts simplify the process of obtaining temporary AWS credentials using MFA, allowing users to easily switch between different AWS profiles that require MFA authentication.
+These scripts simplify the process of obtaining temporary AWS credentials using MFA, allowing users to easily switch between different AWS profiles that require MFA authentication. They automate the steps described in the AWS official documentation: [How do I authenticate using MFA with the AWS CLI?](https://repost.aws/knowledge-center/authenticate-mfa-cli)
 
 ## Features
 
@@ -73,4 +73,8 @@ Contributions to improve the scripts are welcome. Please submit a pull request o
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+This script automates the process described in the AWS Knowledge Center article [How do I use an MFA token to authenticate access to my AWS resources through the AWS CLI?](https://repost.aws/knowledge-center/authenticate-mfa-cli). It aims to simplify the steps outlined in the official documentation for a more streamlined user experience.
