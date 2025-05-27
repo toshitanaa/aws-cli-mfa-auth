@@ -1,30 +1,26 @@
 # This script is used to authenticate to AWS using MFA (Multi-Factor Authentication), excluding U2F devices.
 
 # Function to prompt for input
-function Prompt-Input {
+function Read-Input {
     param (
         [string]$prompt,
         [string]$defaultValue
     )
-    $input = Read-Host -Prompt "$prompt"
-    if ([string]::IsNullOrWhiteSpace($input)) {
+    $userInput = Read-Host -Prompt "$prompt"
+    if ([string]::IsNullOrWhiteSpace($userInput)) {
         return $defaultValue
     }
-    return $input
+    return $userInput
 }
 
-# Check for AWS CLI and jq
+# Check for AWS CLI
 if (!(Get-Command aws -ErrorAction SilentlyContinue)) {
     Write-Host "AWS CLI is required. Aborting."
     exit 1
 }
-if (!(Get-Command jq -ErrorAction SilentlyContinue)) {
-    Write-Host "jq is required. Aborting."
-    exit 1
-}
 
 # Prompt for AWS profile name
-$aws_profile = Prompt-Input -prompt "Enter your AWS profile name (Default: default)" -defaultValue "default"
+$aws_profile = Read-Input -prompt "Enter your AWS profile name (Default: default)" -defaultValue "default"
 
 # Fetch MFA devices
 Write-Host "Fetching MFA devices..."
@@ -47,13 +43,13 @@ else {
     for ($i = 0; $i -lt $mfa_count; $i++) {
         Write-Host "$($i + 1)) $($mfa_devices[$i].SerialNumber)"
     }
-    $device_number = [int](Prompt-Input -prompt "Enter the number of your MFA device" -defaultValue "1")
+    $device_number = [int](Read-Input -prompt "Enter the number of your MFA device" -defaultValue "1")
     $mfa_arn = $mfa_devices[$device_number - 1].SerialNumber
     Write-Host "Using MFA device: $mfa_arn"
 }
 
 # Input MFA code
-$token_code = Prompt-Input -prompt "Enter your MFA code" -defaultValue ""
+$token_code = Read-Input -prompt "Enter your MFA code" -defaultValue ""
 
 # Get temporary credentials
 Write-Host "Fetching temporary credentials..."
@@ -61,7 +57,7 @@ $creds = aws sts get-session-token --serial-number $mfa_arn --token-code $token_
 
 # Create a new profile name
 $new_profile = "$aws_profile-mfa"
-$new_profile = Prompt-Input -prompt "Enter a name for the new profile (Default: $new_profile)" -defaultValue $new_profile
+$new_profile = Read-Input -prompt "Enter a name for the new profile (Default: $new_profile)" -defaultValue $new_profile
 
 # Set up the new profile
 aws configure set aws_access_key_id $creds.Credentials.AccessKeyId --profile $new_profile
@@ -79,7 +75,7 @@ Write-Host "Profile name: $new_profile"
 Write-Host "Expiration  : $expiration_local"
 Write-Host ""
 Write-Host "To use these credentials:"
-Write-Host "1. For specific commands: aws s3 ls --profile $new_profile"
-Write-Host "2. For this session: `$env:AWS_PROFILE = '$new_profile'"
+Write-Host "* For specific commands: aws s3 ls --profile $new_profile"
+Write-Host "* For this session: `$env:AWS_PROFILE = '$new_profile'"
 Write-Host ""
 Write-Host "Remember to renew your credentials before they expire."
