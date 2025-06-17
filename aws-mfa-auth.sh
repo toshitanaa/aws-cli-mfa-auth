@@ -57,7 +57,17 @@ aws configure set aws_secret_access_key "$(echo "$creds" | jq -r '.Credentials.S
 aws configure set aws_session_token "$(echo "$creds" | jq -r '.Credentials.SessionToken')" --profile "$new_profile"
 
 # Get expiration time
-expiration_local=$(date -d "$(echo "$creds" | jq -r '.Credentials.Expiration')" '+%Y-%m-%d %H:%M:%S %Z')
+if [ "$(uname)" == "Darwin" ]; then
+    expiration_local=$(
+        # First convert ISO format to BSD date compatible format
+        timestamp=$(echo "$creds" | jq -r '.Credentials.Expiration' | sed 's/\([+-][0-9][0-9]\):\([0-9][0-9]\)/\1\2/') 
+        
+        # Convert to local time using BSD date
+        date -jf "%Y-%m-%dT%H:%M:%S%z" "$timestamp" "+%Y-%m-%d %H:%M:%S %Z"
+    )      
+else
+    expiration_local=$(date -d "$(echo "$creds" | jq -r '.Credentials.Expiration')" '+%Y-%m-%d %H:%M:%S %Z')
+fi
 
 # Final message
 echo
