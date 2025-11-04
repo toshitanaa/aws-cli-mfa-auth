@@ -27,7 +27,7 @@ Write-Host "Fetching MFA devices..."
 $mfa_devices = aws iam list-mfa-devices --profile $aws_profile --output json | ConvertFrom-Json
 
 # Filter out U2F devices
-$mfa_devices = $mfa_devices.MFADevices | Where-Object { $_.SerialNumber -match "^arn:aws:iam::\d+:mfa/" }
+$mfa_devices = @($mfa_devices.MFADevices | Where-Object { $_.SerialNumber -match "^arn:aws:iam::\d+:mfa/" })
 $mfa_count = $mfa_devices.Count
 
 if ($mfa_count -eq 0) {
