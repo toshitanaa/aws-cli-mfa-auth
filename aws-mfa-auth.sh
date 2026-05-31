@@ -22,8 +22,10 @@ prompt_input "Enter your AWS profile name (Default: default): " aws_profile "def
 echo "Fetching MFA devices..."
 mfa_devices=$(aws iam list-mfa-devices --profile "$aws_profile" --output json)
 
-# Filter out U2F devices
-mfa_devices=$(echo "$mfa_devices" | jq '.MFADevices | map(select(.SerialNumber | test("^arn:aws:iam::[0-9]+:mfa/")))')
+# Filter out U2F devices by ensuring the ARN only contains a single path segment
+# after "mfa/" (e.g. arn:aws:iam::123456789012:mfa/username). U2F devices include
+# additional segments which cause AWS CLI authentication to fail.
+mfa_devices=$(echo "$mfa_devices" | jq '.MFADevices | map(select(.SerialNumber | test("^arn:aws:iam::[0-9]+:mfa/[A-Za-z0-9+=,.@_-]+$")))')
 mfa_count=$(echo "$mfa_devices" | jq 'length')
 
 if [ "$mfa_count" -eq 0 ]; then
